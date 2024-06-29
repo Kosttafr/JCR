@@ -8,6 +8,7 @@ class Model:
 
     def reset(self, state=np.random.choice(21, 2)):
         self.state = state
+        return np.float32(state)
 
     def apply_action(self, action):
         return np.array([max(min(self.state[0] - action, 20), 0),
@@ -15,6 +16,7 @@ class Model:
 
     def step(self, action):
         reward = 0
+        done = 0
         new_state = self.apply_action(action)
 
         reward += (-2) * abs(action)
@@ -27,12 +29,16 @@ class Model:
         valid_a_request = min(new_state[0], a_request)
         valid_b_request = min(new_state[1], b_request)
 
+        if a_request > new_state[0] or b_request > new_state[1]:
+            done = 1
+            reward -= 100
+
         reward += (valid_a_request + valid_b_request) * 10
 
         new_state = np.array([max(min(new_state[0] - valid_a_request + a_return, 20), 0),
                               max(min(new_state[1] - valid_b_request + b_return, 20), 0)])
 
-        time_frame = self.state, action, new_state, reward
+        time_frame = np.float32(new_state), np.float32(reward), np.int32(done)
         self.state = new_state
         return time_frame
 
@@ -41,11 +47,4 @@ class Model:
         new_state[21 * self.state[1] + self.state[0]] = 1
         return new_state
 
-# c = Model()
-# print(c.step(3))
-# print(c.state)
-# print(np.array([1, 2]))
-# print(poisson.rvs(mu=3))
-# print(poisson.rvs(mu=3))
-# print(np.random.choice(2, p=[0.9, 0.1]))
-# print(np.random.choice(11) - 5)
+
